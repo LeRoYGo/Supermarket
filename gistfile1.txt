@@ -1,0 +1,104 @@
+using System;
+using System.Collections.Generic;
+
+namespace Supermarket
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Supermarket supermarket = new Supermarket();
+            supermarket.CashierWork();
+        }
+    }
+    class Supermarket
+    {
+        private Queue<Client> _clients;
+
+        public Supermarket()
+        {
+            _clients = new Queue<Client>();
+            _clients.Enqueue(new Client(new List<Product> { new Product(400), new Product(50), new Product(103), new Product(67), new Product(15), }, 500));
+            _clients.Enqueue(new Client(new List<Product> { new Product(100), new Product(593), new Product(255), new Product(100), }, 100));
+            _clients.Enqueue(new Client(new List<Product> { new Product(100), new Product(255), new Product(100), }, 120));
+        }
+        public void CashierWork()
+        {
+            for (int i = _clients.Count; i > 0; i--)
+            {
+                int sum;
+                bool statusPayment = false;
+                Client client = _clients.Dequeue();
+                while (statusPayment == false)
+                {
+                    sum = client.ReceivingSum(out sum, client);
+                    statusPayment = client.PaymentPurchases(sum, statusPayment, client);
+                }
+                Console.WriteLine("Клиент обслужен");
+                Console.WriteLine("------------------------------------------------");
+            }
+            Console.Write("Очередь пуста");
+            Console.ReadKey();
+        }
+    }
+
+    class Client
+    {
+        private List<Product> _basket;
+        private int _balance;
+        private Random random = new Random();
+
+        public Client(List<Product> basket, int balance)
+        {
+            _basket = basket;
+            _balance = balance;
+        }
+        public int ReceivingSum(out int sum, Client client)
+        {
+            sum = 0;
+            for (int i = 0; i < client._basket.Count; i++)
+            {
+                sum += client._basket[i].Price;
+            }
+            return sum;
+        }
+        public bool PaymentPurchases(int sum, bool statusPayment, Client client)
+        {
+            if (client._balance >= sum)
+            {
+                _balance -= sum;
+                Console.WriteLine("Оплата успешна...");
+                return statusPayment = true;
+            }
+            else
+            {
+                int i = random.Next(0, _basket.Count);
+                Console.WriteLine("Недостаточно денег. Выложите 1 продукт.");
+                UnloadingProduct(client, i);
+                return statusPayment = false;
+            }
+        }
+        private void UnloadingProduct(Client client, int i)
+        {
+            if (client._basket.Count > 0)
+            {
+                _basket.RemoveAt(i);
+                Console.WriteLine("Вы выложили 1 продукт. Попробуйте оплатить");
+            }
+            else
+            {
+                Console.WriteLine("Корзина пуста");
+            }
+        }
+    }
+
+    class Product
+    {
+        public int Price { get; private set; }
+
+        public Product(int price)
+        {
+            Price = price;
+        }
+    }
+}
